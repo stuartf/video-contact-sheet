@@ -8,6 +8,16 @@ var argv = require('minimist')(process.argv.slice(2));
 
 temp.track();
 
+function usage() {
+  console.error('generate.js [options] filename [filename2...]');
+  console.error('  -h, --help:  Print this usage info');
+  console.error('  -x: Set the x dimension of the thumbnails (default is 326)');
+  console.error('  -y: Set the y dimension of the thumbnails (default is 246)');
+  console.error('  -c: Set the number of columns (default is 3)');
+  console.error('  -r: Set the number of rows (default is 8)');
+  process.exit(0);
+}
+
 function escapeRegExp(str) {
   return str.replace(/[\[\]\{\}\(\)\*\+\?\\\^\$\|\ \'\"]/g, '\\$&');
 }
@@ -39,7 +49,7 @@ function generateMontage(videoInfo) {
 
   for (var i=0; i < numThumbnails; i++) {
     var ssVal = Math.round( i*(videoDurationInSeconds/numThumbnails) );
-    var generateThumbnailCommand = 'ffmpeg -ss '+ ssVal + ' -i '+ inputVideoFilename +' -s '+dimensions+' '+folderName+'/'+(i+1)+'.png';
+    var generateThumbnailCommand = 'ffmpeg -ss '+ ssVal + ' -i '+ videoInfo.fullpath +' -s '+dimensions+' '+folderName+'/'+(i+1)+'.png';
     exec(generateThumbnailCommand, assembleImages);
   }
 }
@@ -70,7 +80,8 @@ function readFileInfo(error, stdout, stderr) {
     'filename': filename,
     'duration': duration,
     'filesize': filesize,
-    'resolution': resolution
+    'resolution': resolution,
+    'fullpath': escapeRegExp(format.filename)
   };
 
   console.log(videoInfo);
@@ -78,7 +89,13 @@ function readFileInfo(error, stdout, stderr) {
   generateMontage(videoInfo);
 }
 
-var inputVideoFilename = escapeRegExp(argv._[0]);
+if (argv.h || argv.help) {
+    usage();
+}
 
-var getVideoInfoCommand = 'ffprobe -v quiet -print_format json -pretty -show_format -show_streams ' + inputVideoFilename;
-exec(getVideoInfoCommand, readFileInfo);
+_.each(argv._, function(inputVideo) {
+  var inputVideoFilename = escapeRegExp(inputVideo);
+
+  var getVideoInfoCommand = 'ffprobe -v quiet -print_format json -pretty -show_format -show_streams ' + inputVideoFilename;
+  exec(getVideoInfoCommand, readFileInfo);
+});
