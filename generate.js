@@ -4,21 +4,20 @@ var _ = require('underscore');
 var sys = require('sys');
 var exec = require('child_process').exec;
 var temp = require('temp');
+var argv = require('minimist')(process.argv.slice(2));
 
 temp.track();
-
-// RegExp.quote = function(str) {
-//   return str.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
-// };
 
 function escapeRegExp(str) {
   return str.replace(/[\[\]\{\}\(\)\*\+\?\\\^\$\|\ \'\"]/g, '\\$&');
 }
 
 function generateMontage(videoInfo) {
-  var dimensions = '326x246';//326x246';  // CONFIG
-  var cols =  3; // CONFIG
-  var rows = 8; // CONFIG
+  var x = argv.x || '326';
+  var y = argv.y || '246';
+  var dimensions = x + 'x' + y;
+  var cols =  argv.c || 3;
+  var rows = argv.r || 8;
   var numThumbnails = cols * rows;
 
   // Convert video duration from hh:mm:ss to seconds.
@@ -47,7 +46,6 @@ function generateMontage(videoInfo) {
 
 function readFileInfo(error, stdout, stderr) {
   var result = JSON.parse(stdout);
-  // console.log(result);
 
   var format = result.format;
   var filename = format.filename.split('/').pop();
@@ -80,7 +78,7 @@ function readFileInfo(error, stdout, stderr) {
   generateMontage(videoInfo);
 }
 
-var inputVideoFilename = escapeRegExp(process.argv[2]);
+var inputVideoFilename = escapeRegExp(argv._[0]);
 
 var getVideoInfoCommand = 'ffprobe -v quiet -print_format json -pretty -show_format -show_streams ' + inputVideoFilename;
 exec(getVideoInfoCommand, readFileInfo);

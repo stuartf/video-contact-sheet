@@ -2,7 +2,9 @@
   "name": "video-contact-sheet",
   "version": "0.0.1",
   "description": "Makes a single image containing thumbnails from a video.",
+  "repository": "https://github.com/stuartf/video-contact-sheet.git",
   "dependencies": {
+    "minimist": "latest",
     "temp": "latest",
     "underscore": "latest"
   }
