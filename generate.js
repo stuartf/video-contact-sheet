@@ -18,10 +18,6 @@ function usage() {
   process.exit(0);
 }
 
-function escapeRegExp(str) {
-  return str.replace(/[\[\]\{\}\(\)\*\+\?\\\^\$\|\ \'\"]/g, '\\$&');
-}
-
 function generateMontage(videoInfo) {
   var x = argv.x || '326';
   var y = argv.y || '246';
@@ -43,13 +39,13 @@ function generateMontage(videoInfo) {
 
   var assembleImages = _.after(numThumbnails, function() {
     var title='\n\n\nfilename: ' + videoInfo.filename + '\nduration: ' + videoInfo.duration + '\nsize: ' + videoInfo.filesize + '\nresolution: ' + videoInfo.resolution;
-    var generateMontageCommand = 'cd '+folderName+' && montage $(ls | sort -n) -tile '+cols+'x'+rows+' -geometry '+dimensions+'+1+1 -title "'+title+'" ' + process.cwd() + '/' + videoInfo.filename + '-montage.png';
+    var generateMontageCommand = 'cd '+folderName+' && montage $(ls | sort -n) -tile '+cols+'x'+rows+' -geometry '+dimensions+'+1+1 -title "'+title+'" \'' + process.cwd() + '/' + videoInfo.filename + '-montage.png\'';
     exec(generateMontageCommand);
   });
 
   for (var i=0; i < numThumbnails; i++) {
     var ssVal = Math.round( i*(videoDurationInSeconds/numThumbnails) );
-    var generateThumbnailCommand = 'ffmpeg -ss '+ ssVal + ' -i '+ videoInfo.fullpath +' -s '+dimensions+' '+folderName+'/'+(i+1)+'.png';
+    var generateThumbnailCommand = 'ffmpeg -ss '+ ssVal + ' -i \''+ videoInfo.fullpath +'\' -s '+dimensions+' '+folderName+'/'+(i+1)+'.png';
     exec(generateThumbnailCommand, assembleImages);
   }
 }
@@ -81,7 +77,7 @@ function readFileInfo(error, stdout, stderr) {
     'duration': duration,
     'filesize': filesize,
     'resolution': resolution,
-    'fullpath': escapeRegExp(format.filename)
+    'fullpath': format.filename
   };
 
   console.log(videoInfo);
@@ -93,9 +89,7 @@ if (argv.h || argv.help) {
     usage();
 }
 
-_.each(argv._, function(inputVideo) {
-  var inputVideoFilename = escapeRegExp(inputVideo);
-
-  var getVideoInfoCommand = 'ffprobe -v quiet -print_format json -pretty -show_format -show_streams ' + inputVideoFilename;
+_.each(argv._, function(inputVideoFilename) {
+  var getVideoInfoCommand = 'ffprobe -v quiet -print_format json -pretty -show_format -show_streams \'' + inputVideoFilename + '\'';
   exec(getVideoInfoCommand, readFileInfo);
 });
