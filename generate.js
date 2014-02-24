@@ -15,6 +15,7 @@ function usage() {
   console.error('  -y: Set the y dimension of the thumbnails (default is 246)');
   console.error('  -c: Set the number of columns (default is 3)');
   console.error('  -r: Set the number of rows (default is 8)');
+  console.error('  -e: Set the image type/extension (default is png)');
   process.exit(0);
 }
 
@@ -25,6 +26,7 @@ function generateMontage(videoInfo) {
   var cols =  argv.c || 3;
   var rows = argv.r || 8;
   var numThumbnails = cols * rows;
+  var ext = argv.e || 'png';
 
   // Convert video duration from hh:mm:ss to seconds.
   var videoDurationInSeconds = 0;
@@ -39,13 +41,13 @@ function generateMontage(videoInfo) {
 
   var assembleImages = _.after(numThumbnails, function() {
     var title='\n\n\nfilename: ' + videoInfo.filename + '\nduration: ' + videoInfo.duration + '\nsize: ' + videoInfo.filesize + '\nresolution: ' + videoInfo.resolution;
-    var generateMontageCommand = 'cd '+folderName+' && montage $(ls | sort -n) -tile '+cols+'x'+rows+' -geometry '+dimensions+'+1+1 -title "'+title+'" \'' + process.cwd() + '/' + videoInfo.filename + '-montage.png\'';
+    var generateMontageCommand = 'cd '+folderName+' && montage $(ls | sort -n) -tile '+cols+'x'+rows+' -geometry '+dimensions+'+1+1 -title "'+title+'" \'' + process.cwd() + '/' + videoInfo.filename + '-montage.'+ ext + '\'';
     exec(generateMontageCommand);
   });
 
   for (var i=0; i < numThumbnails; i++) {
     var ssVal = Math.round( i*(videoDurationInSeconds/numThumbnails) );
-    var generateThumbnailCommand = 'ffmpeg -ss '+ ssVal + ' -i \''+ videoInfo.fullpath +'\' -s '+dimensions+' '+folderName+'/'+(i+1)+'.png';
+    var generateThumbnailCommand = 'ffmpeg -ss '+ ssVal + ' -i \''+ videoInfo.fullpath +'\' -s '+dimensions+' '+folderName+'/'+(i+1)+'.' + ext;
     exec(generateThumbnailCommand, assembleImages);
   }
 }
